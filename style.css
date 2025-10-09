@@ -1,0 +1,617 @@
+/* --- CSS 变量定义 (方便修改主题) --- */
+:root {
+    --bg-color: #1a1a2e; /* 深蓝紫背景 */
+    --primary-accent: #00f5d4; /* 主点缀色 - 青色 */
+    --secondary-accent: #e11d74; /* 次点缀色 - 品红 */
+    --card-bg: rgba(23, 23, 43, 0.85); /* 卡片背景色 */
+    --text-primary: #e0e0e0; /* 主要文字颜色 */
+    --text-secondary: #a0a0b0; /* 次要文字颜色 */
+    --border-color: rgba(0, 245, 212, 0.2); /* 边框颜色 */
+    --shadow-color: rgba(0, 245, 212, 0.5);
+    --font-family: 'Segoe UI', 'Microsoft YaHei', system-ui, sans-serif;
+    --success-color: #00f5d4;
+    --error-color: #e11d74;
+}
+
+/* --- 全局与布局 --- */
+body {
+    font-family: var(--font-family);
+    background: var(--bg-color);
+    background-image: radial-gradient(circle at 1% 1%, rgba(0, 245, 212, 0.15), transparent 25%),
+                      radial-gradient(circle at 99% 99%, rgba(225, 29, 116, 0.15), transparent 25%);
+    color: var(--text-primary);
+    text-align: center;
+    padding: 20px;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+.app-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* --- 标题与副标题 --- */
+h1 {
+    color: #fff;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px var(--shadow-color);
+    margin-bottom: 8px;
+}
+
+.stage {
+    color: var(--text-secondary);
+    margin-bottom: 25px;
+    font-style: italic;
+    letter-spacing: 1px;
+}
+
+/* --- 控制器区域 --- */
+.controls {
+    margin-bottom: 25px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+/* --- 按钮样式 --- */
+button {
+    background: transparent;
+    color: var(--primary-accent);
+    border: 1px solid var(--primary-accent);
+    padding: 10px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    letter-spacing: 1px;
+    position: relative;
+    overflow: hidden;
+}
+
+button:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(120deg, transparent, rgba(0, 245, 212, 0.3), transparent);
+    transition: all 0.5s;
+}
+
+button:hover {
+    background: var(--primary-accent);
+    color: var(--bg-color);
+    box-shadow: 0 0 20px var(--shadow-color);
+}
+
+button:hover:before {
+    left: 100%;
+}
+
+button:disabled {
+    border-color: var(--text-secondary);
+    color: var(--text-secondary);
+    cursor: not-allowed;
+    background: transparent;
+    box-shadow: none;
+}
+button:disabled:hover:before {
+    left: -100%;
+}
+
+
+/* 特殊按钮颜色 */
+#drawBtn, #performDrawBtn {
+    border-color: var(--secondary-accent);
+    color: var(--secondary-accent);
+}
+#drawBtn:hover, #performDrawBtn:hover {
+    background: var(--secondary-accent);
+    color: var(--bg-color);
+    box-shadow: 0 0 20px rgba(225, 29, 116, 0.5);
+}
+
+#clearListBtn, #removeBgmBtn {
+    border-color: #ffc107;
+    color: #ffc107;
+    padding: 6px 12px;
+}
+#clearListBtn:hover, #removeBgmBtn:hover {
+    background: #ffc107;
+    color: var(--bg-color);
+     box-shadow: 0 0 20px rgba(255, 193, 7, 0.5);
+}
+
+.panel button {
+    padding: 6px 12px;
+    font-size: 14px;
+}
+
+
+/* --- 面板样式 (设置/抽签) --- */
+.panel {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    margin: 20px auto;
+    display: none;
+    text-align: left;
+    max-width: 600px;
+}
+
+.panel h3 {
+    margin-top: 0;
+    color: var(--primary-accent);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+.panel hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 25px 0;
+}
+.panel b {
+    color: var(--text-primary);
+}
+
+/* --- 表单元素 --- */
+.panel select, .panel input, .panel button {
+    margin: 4px;
+}
+
+.panel select, .panel input[type="number"], .panel input[type="text"], .panel input[type="file"] {
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 8px 10px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+.panel select:focus, .panel input:focus {
+    outline: none;
+    border-color: var(--primary-accent);
+    box-shadow: 0 0 10px var(--shadow-color);
+}
+.listbox {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 10px;
+    max-height: 120px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    border-radius: 4px;
+    background: rgba(0,0,0,0.1);
+}
+
+/* --- 座位表 --- */
+#container {
+    margin-top: 20px;
+    position: relative; /* 添加 relative 以便定位加载动画 */
+}
+.group-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.group-label {
+    display: inline-block;
+    width: 120px;
+    margin: 4px;
+    font-weight: bold;
+    color: var(--text-secondary);
+}
+.header-spacer {
+    width: 60px;
+    margin-right: 8px;
+}
+.row {
+    margin: 10px 0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+.row-label {
+    width:60px;
+    text-align:right;
+    margin-right:8px;
+    font-weight:bold;
+    color: var(--text-secondary);
+}
+.seat {
+    display: inline-block;
+    width: 120px;
+    height: 45px;
+    margin: 4px;
+    border-radius: 6px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    line-height: 45px;
+    vertical-align: middle;
+    font-weight: 600;
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.seat.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+/* --- 抽签结果 --- */
+#drawResult {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+.winner {
+    background: var(--card-bg);
+    border: 2px solid var(--secondary-accent);
+    color: var(--secondary-accent);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    box-shadow: 0 0 15px rgba(225, 29, 116, 0.5);
+    opacity: 0;
+    transform: scale(0.5);
+    transition: opacity 0.4s, transform 0.4s;
+}
+.winner.show {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* --- 预览表格 --- */
+#settingsPreview {
+    margin-top: 15px;
+    user-select: none;
+}
+#settingsPreview table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+#settingsPreview th, #settingsPreview td {
+    border: 1px solid var(--border-color);
+    padding: 6px;
+    text-align: center;
+    font-size: 12px;
+    height: 35px;
+}
+#settingsPreview th {
+    background-color: rgba(0, 245, 212, 0.1);
+    color: var(--primary-accent);
+    font-weight: bold;
+}
+#settingsPreview .fixed-preview-seat {
+    background-color: rgba(225, 29, 116, 0.2);
+    color: #f06292;
+    font-weight: bold;
+}
+
+/* --- 提示信息 --- */
+.hint {
+    color: var(--text-secondary);
+    font-size:14px;
+    margin-top:8px;
+}
+#status {
+    margin-top: 15px;
+    font-size: 16px;
+    min-height: 24px;
+}
+
+
+/* --- 新增：加载动画 (Spinner) --- */
+.spinner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(26, 26, 46, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    display: none; /* 默认隐藏 */
+}
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid var(--border-color);
+    border-top-color: var(--primary-accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* --- 新增：无干扰提示 (Toast) --- */
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+#toast-container .toast {
+    padding: 15px 20px;
+    border-radius: 8px;
+    color: var(--bg-color);
+    font-weight: 600;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    opacity: 0;
+    transform: translateX(100%);
+    animation: slideIn 0.5s forwards, fadeOut 0.5s 3s forwards;
+}
+.toast.success {
+    background-color: var(--success-color);
+}
+.toast.error {
+    background-color: var(--error-color);
+    color: #fff;
+}
+@keyframes slideIn {
+    to { opacity: 1; transform: translateX(0); }
+}
+@keyframes fadeOut {
+    from { opacity: 1; transform: translateX(0); }
+    to { opacity: 0; transform: translateX(100%); }
+}
+
+/* --- 新增：打印样式 --- */
+@media print {
+    body {
+        background: #fff;
+        color: #000;
+        padding: 0;
+        margin: 0;
+    }
+    .no-print, .controls, .panel, h1, .stage, #status, #toast-container {
+        display: none !important; /* 隐藏所有不需要打印的元素 */
+    }
+    .app-container {
+        max-width: 100%;
+        margin: 0;
+    }
+    #container {
+        margin-top: 0;
+    }
+    .seat {
+        border: 1px solid #000;
+        color: #000;
+        background: #fff;
+        box-shadow: none;
+        width: 100px; /* 调整尺寸以适应A4纸 */
+        height: 40px;
+        line-height: 40px;
+    }
+    .group-label, .row-label {
+        color: #000;
+    }
+}
+
+/* --- 新增：浅色主题 (Light Theme) --- */
+body.light-theme {
+    --bg-color: #f4f6f9;
+    --primary-accent: #007bff;
+    --secondary-accent: #dc3545;
+    --card-bg: rgba(255, 255, 255, 0.9);
+    --text-primary: #212529;
+    --text-secondary: #6c757d;
+    --border-color: rgba(0, 0, 0, 0.1);
+    --shadow-color: rgba(0, 123, 255, 0.3);
+    background-image: none; /* 浅色模式下移除背景射线 */
+}
+body.light-theme h1 {
+    color: #000;
+    text-shadow: none;
+}
+body.light-theme .seat,
+body.light-theme .winner {
+    color: var(--text-primary);
+}
+
+/* --- 新增：主题切换按钮样式 --- */
+#theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 45px;
+    height: 45px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    z-index: 1001; /* 比toast更高一级 */
+    transition: all 0.3s ease;
+}
+#theme-toggle:hover {
+    box-shadow: 0 0 10px var(--shadow-color);
+    transform: scale(1.1) rotate(15deg);
+}
+
+/* --- 新增：拖拽功能样式 --- */
+#unseated-list-container {
+    background: rgba(0,0,0,0.1);
+}
+.draggable-student {
+    padding: 8px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    margin-bottom: 8px;
+    cursor: grab;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+.draggable-student:hover {
+    background: var(--primary-accent);
+    color: var(--bg-color);
+    box-shadow: 0 0 10px var(--shadow-color);
+}
+.draggable-student.dragging {
+    opacity: 0.5;
+    transform: scale(1.05);
+}
+#settingsPreview td.drag-over {
+    border: 2px dashed var(--primary-accent);
+    background-color: rgba(0, 245, 212, 0.1);
+}
+#settingsPreview .fixed-preview-seat {
+    cursor: pointer; /* 添加手型光标，提示可以操作 */
+}
+
+/* --- 新增：设置面板美化样式 --- */
+.panel h4 {
+    color: var(--text-primary);
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.1em;
+    display: flex;
+    align-items: center;
+}
+.panel h4 .section-num {
+    background: var(--primary-accent);
+    color: var(--bg-color);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 12px;
+    font-weight: bold;
+}
+.setting-section {
+    padding-left: 36px; /* 与标题编号对齐 */
+}
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    align-items: start;
+}
+.settings-grid > div {
+    min-width: 0; /* 修复flex/grid子项溢出问题 */
+}
+
+#in-progress-controls {
+    background: var(--card-bg);
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 0 15px var(--shadow-color);
+}
+
+#pauseResumeBtn {
+    border-color: #ffc107;
+    color: #ffc107;
+}
+#pauseResumeBtn:hover {
+    background: #ffc107;
+    color: var(--bg-color);
+    box-shadow: 0 0 20px rgba(255, 193, 7, 0.5);
+}
+
+#cancelBtn {
+    border-color: var(--secondary-accent);
+    color: var(--secondary-accent);
+}
+#cancelBtn:hover {
+    background: var(--secondary-accent);
+    color: var(--bg-color);
+}
+
+/* --- 新增：抽签“老虎机”动画样式 --- */
+.slot {
+    background: var(--card-bg);
+    border: 2px solid var(--primary-accent);
+    box-shadow: 0 0 15px var(--shadow-color), inset 0 0 10px rgba(0,0,0,0.3);
+    border-radius: 10px;
+    width: 180px;
+    height: 60px; /* 单个名字的高度 */
+    margin: 10px;
+    overflow: hidden; /* 关键：隐藏滚动区域外的内容 */
+    display: inline-block;
+    position: relative;
+}
+
+/* 增加上下渐变遮罩，更有立体感 */
+.slot::before,
+.slot::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 15px;
+    z-index: 2;
+}
+.slot::before {
+    top: 0;
+    background: linear-gradient(to bottom, var(--card-bg) 0%, transparent 100%);
+}
+.slot::after {
+    bottom: 0;
+    background: linear-gradient(to top, var(--card-bg) 0%, transparent 100%);
+}
+
+.reel {
+    /* transition是动画的核心，设置动画时长和缓动效果 */
+    transition: transform 3s cubic-bezier(0.3, 1, 0.4, 1); 
+}
+
+.reel-item {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 60px;
+    font-size: 22px;
+    font-weight: bold;
+    position: relative; /* 新增：开启相对定位 */
+    top: -12px;           /* 新增：向下微调2像素 */
+}
+
+body.light-theme .reel-item {
+    color: var(--text-primary);
+}
+
+
+
+/* === 最终修复 v2：只通过CSS控制颜色 === */
+#drawResult .reel-item {
+    color: #E0E0E0 !important;
+}
+#drawResult .reel-item.winner {
+    color: #F06292 !important;
+}
+
+/* 适配浅色主题 */
+body.light-theme #drawResult .reel-item {
+    color: #212529 !important;
+}
+body.light-theme #drawResult .reel-item.winner {
+    color: #D32F2F !important;
+}

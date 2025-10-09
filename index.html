@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>班级座位生成与抽签系统</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+  <button id="theme-toggle" class="no-print">☀️</button>
+
+  <div class="app-container">
+    <h1 class="no-print">班级座位生成与抽签器</h1>
+    <div class="stage no-print">-- 讲台 --</div>
+
+    <div class="controls no-print">
+      <button id="generateBtn" disabled>生成随机座位</button>
+      <button id="settingsBtn">⚙ 设置</button>
+      <button id="drawBtn" disabled>🏆 抽签</button>
+      <button id="printBtn">🖨️ 打印/导出</button>
+      <button id="importSettingsBtn">📥 导入配置</button>
+      <button id="exportSettingsBtn">📤 导出配置</button>
+    </div>
+
+    <div id="in-progress-controls" class="controls no-print" style="display: none;">
+      <button id="pauseResumeBtn">⏸️ 暂停</button>
+      <button id="cancelBtn">⏹️ 中止</button>
+    </div>
+
+    <input type="file" id="importFile" accept=".json" style="display: none;">
+
+    <audio id="bgm" src="Mark Petrie - Go Time.mp3" preload="auto"></audio>
+
+    <div id="settingsPanel" class="panel no-print">
+        <h3>设置面板</h3>
+
+        <h4><span class="section-num">1</span>数据源</h4>
+        <div class="setting-section">
+          <b>上传班级名单 (Excel, .xlsx)</b><br/>
+          <input type="file" id="excelFile" accept=".xlsx, .xls" />
+          <button id="clearListBtn">清除名单</button>
+          <div id="fileStatus" class="hint">
+            格式要求：姓名、性别、身高为必需列。
+          </div>
+        </div>
+        <hr/>
+
+        <h4><span class="section-num">2</span>全局布局与分配</h4>
+        <div class="setting-section settings-grid">
+          <div>
+            <b>规模调整:</b><br>
+            排数: <input type="number" id="rowCount" min="1" max="10" value="6"/>　
+            组数: <input type="number" id="colCount" min="1" max="10" value="7"/>
+          </div>
+          <div>
+            <b>身高分组:</b><br/>
+            分为: <input type="number" id="groupCount" value="2" min="2" max="10" style="width: 50px;"/> 份
+          </div>
+          <div>
+            <label><input type="checkbox" id="autoBalance"/> <b>启用自动均匀分配</b></label>
+            <div class="hint">(勾选后，将打乱所有分组随机排座；关闭后，按分组顺序优先排座)</div>
+          </div>
+        </div>
+        <hr/>
+
+        <h4><span class="section-num">3</span>排座规则</h4>
+        <div class="setting-section">
+          <div class="settings-grid">
+            <div>
+              <b>添加互斥同学 (不能相邻):</b><br/>
+              <select id="avoidA"></select>
+              <select id="avoidB"></select>
+              <button id="addAvoidPairBtn">添加</button><br/>
+              <label><input type="checkbox" id="includeDiagonals"/> 包括对角线</label>
+              <div class="listbox" id="avoidList">互斥列表：无</div>
+            </div>
+            <div>
+              <b>同桌规则设置:</b><br/>
+              <label><input type="checkbox" id="enableGenderRule"> 启用男女不同桌</label><br/>
+              <input type="text" id="deskPairDefinition" placeholder="定义同桌列, e.g., 1-2, 3-4" style="width: 200px; margin-top: 5px;">
+            </div>
+          </div>
+          <div style="margin-top: 20px;">
+            <b>拖拽固定座位 (将左侧学生拖到右侧座位上，双击座位取消):</b>
+            <div style="display: flex; gap: 20px; margin-top: 10px;">
+              <div id="unseated-list-container" style="width: 30%; border: 1px dashed var(--border-color); padding: 10px; border-radius: 8px; min-height: 200px; max-height: 400px; overflow-y: auto;">
+                <div id="unseated-list"></div>
+              </div>
+              <div id="settingsPreview" style="width: 70%;"></div>
+            </div>
+          </div>
+        </div>
+        <hr/>
+        
+        <h4><span class="section-num">4</span>附加功能</h4>
+        <div class="setting-section">
+          <b>背景音乐 (BGM) 播放列表:</b>
+          <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+            <select id="bgmSelector" style="width: 60%;"></select>
+            <button id="removeBgmBtn">删除选中</button>
+          </div>
+          <div style="margin-top: 15px;">
+            <b>添加新音乐:</b><br/>
+            <input type="text" id="bgmNameInput" placeholder="音乐名称" style="width: 30%;">
+            <input type="text" id="bgmUrlInput" placeholder="音乐URL或本地文件名" style="width: 45%;">
+            <button id="addBgmBtn">添加</button>
+          </div>
+        </div>
+    </div>
+
+    <div id="drawPanel" class="panel no-print">
+        <h3>幸运抽签</h3>
+        <div>
+          抽取人数: <input type="number" id="drawCount" min="1" value="1" style="width: 60px;"/>
+          <button id="performDrawBtn">开始抽签</button>
+        </div>
+        <div id="drawResult"></div>
+    </div>
+    
+    <div id="status" class="hint"></div>
+    
+    <div id="container">
+        <div class="spinner-overlay" id="spinner">
+            <div class="spinner"></div>
+        </div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
