@@ -77,6 +77,7 @@
             <div>
               <b>同桌规则设置:</b><br/>
               <label><input type="checkbox" id="enableGenderRule"> 启用男女不同桌</label><br/>
+              <label><input type="checkbox" id="forceGenderPairing"> 强制男女同桌 (需定义同桌列)</label><br/>
               <input type="text" id="deskPairDefinition" placeholder="定义同桌列, e.g., 1-2, 3-4" style="width: 200px; margin-top: 5px;">
             </div>
           </div>
@@ -86,7 +87,7 @@
               <div id="unseated-list-container" style="width: 30%; border: 1px dashed var(--border-color); padding: 10px; border-radius: 8px; min-height: 200px; max-height: 400px; overflow-y: auto;">
                 <div id="unseated-list"></div>
               </div>
-              <div id="settingsPreview" style="width: 70%;"></div>
+              <div id="settingsPreview" style="width: 75%;"></div>
             </div>
           </div>
         </div>

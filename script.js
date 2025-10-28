@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     /* --- DATA / STATE --- */
-    let studentGroups = []; 
+    let studentGroups = [];
     let allStudents = [];
     let studentDetails = [];
     let nameToGenderMap = new Map();
@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let maxRows = 6;
     let maxCols = 7;
     let bgmPlaylist = [];
-        // 新增：暂停/中止状态
+    // 新增：暂停/中止状态
     let isPaused = false;
     let isCancelled = false;
 
@@ -61,13 +61,13 @@ document.addEventListener('DOMContentLoaded', () => {
             themeToggle.textContent = '☀️';
         }
     }
-    
+
     /* --- 专业版功能模块 --- */
     function showToast(message, type = 'success') { const toast = document.createElement('div'); toast.className = `toast ${type}`; toast.textContent = message; toastContainer.appendChild(toast); setTimeout(() => { toast.remove(); }, 3500); }
     function showSpinner() { spinner.style.display = 'flex'; }
     function hideSpinner() { spinner.style.display = 'none'; }
     function printSeatingChart() { if (allStudents.length === 0 || container.children.length <= 1) { showToast('请先生成座位表后再打印', 'error'); return; } window.print(); }
-    function exportSettings() { if (allStudents.length === 0) { showToast('没有可导出的数据，请先上传名单', 'error'); return; } const settingsToExport = { studentDetails: studentDetails, avoidPairs: avoidPairs, fixedSeats: fixedSeats, bgmPlaylist: bgmPlaylist, lastSelectedBgmUrl: localStorage.getItem('lastSelectedBgmUrl'), seatingAppSettings: JSON.parse(localStorage.getItem('seatingAppSettings')), rules: { enableGenderRule: $('enableGenderRule').checked, deskPairDefinition: $('deskPairDefinition').value, includeDiagonals: $('includeDiagonals').checked, autoBalance: $('autoBalance').checked } }; const blob = new Blob([JSON.stringify(settingsToExport, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `座位系统配置_${new Date().toLocaleDateString()}.json`; a.click(); URL.revokeObjectURL(url); showToast('配置已导出！'); }
+    function exportSettings() { if (allStudents.length === 0) { showToast('没有可导出的数据，请先上传名单', 'error'); return; } const settingsToExport = { studentDetails: studentDetails, avoidPairs: avoidPairs, fixedSeats: fixedSeats, bgmPlaylist: bgmPlaylist, lastSelectedBgmUrl: localStorage.getItem('lastSelectedBgmUrl'), seatingAppSettings: JSON.parse(localStorage.getItem('seatingAppSettings')), rules: { enableGenderRule: $('enableGenderRule').checked, forceGenderPairing: $('forceGenderPairing').checked, deskPairDefinition: $('deskPairDefinition').value, includeDiagonals: $('includeDiagonals').checked, autoBalance: $('autoBalance').checked } }; const blob = new Blob([JSON.stringify(settingsToExport, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `座位系统配置_${new Date().toLocaleDateString()}.json`; a.click(); URL.revokeObjectURL(url); showToast('配置已导出！'); }
     function importSettings(event) {
         const file = event.target.files[0]; if (!file) return;
         const reader = new FileReader();
@@ -78,9 +78,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 avoidPairs = data.avoidPairs || [];
                 fixedSeats = data.fixedSeats || {};
                 bgmPlaylist = data.bgmPlaylist || [];
-                if(data.rules) { $('enableGenderRule').checked = data.rules.enableGenderRule; $('deskPairDefinition').value = data.rules.deskPairDefinition; $('includeDiagonals').checked = data.rules.includeDiagonals; $('autoBalance').checked = data.rules.autoBalance; }
-                if(data.lastSelectedBgmUrl) localStorage.setItem('lastSelectedBgmUrl', data.lastSelectedBgmUrl);
-                if(data.seatingAppSettings) localStorage.setItem('seatingAppSettings', JSON.stringify(data.seatingAppSettings));
+                if (data.rules) { $('enableGenderRule').checked = data.rules.enableGenderRule; $('forceGenderPairing').checked = data.rules.forceGenderPairing; $('deskPairDefinition').value = data.rules.deskPairDefinition; $('includeDiagonals').checked = data.rules.includeDiagonals; $('autoBalance').checked = data.rules.autoBalance; }
+                if (data.lastSelectedBgmUrl) localStorage.setItem('lastSelectedBgmUrl', data.lastSelectedBgmUrl);
+                if (data.seatingAppSettings) localStorage.setItem('seatingAppSettings', JSON.stringify(data.seatingAppSettings));
                 loadSettings();
                 loadPlaylist();
                 processAndStoreStudents(studentDetails);
@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /* --- UTILITY FUNCTIONS --- */
-    const shuffle = arr => { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+    const shuffle = arr => { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]]; } return a; };
     const delay = ms => new Promise(res => setTimeout(res, ms));
 
     /* --- BGM Playlist Functions --- */
@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
         bgmSelector.innerHTML = ''; if (bgmPlaylist.length === 0) { bgmSelector.innerHTML = '<option>播放列表为空</option>'; bgm.src = ''; return; }
         bgmPlaylist.forEach((track, index) => { const option = document.createElement('option'); option.value = track.url; option.textContent = track.name; option.dataset.index = index; bgmSelector.appendChild(option); });
         const lastSelectedUrl = localStorage.getItem('lastSelectedBgmUrl'); const selectedTrack = bgmPlaylist.find(t => t.url === lastSelectedUrl);
-        if (selectedTrack) { bgmSelector.value = selectedTrack.url; bgm.src = selectedTrack.url; } else { bgmSelector.selectedIndex = 0; if(bgmPlaylist[0]) bgm.src = bgmPlaylist[0].url; }
+        if (selectedTrack) { bgmSelector.value = selectedTrack.url; bgm.src = selectedTrack.url; } else { bgmSelector.selectedIndex = 0; if (bgmPlaylist[0]) bgm.src = bgmPlaylist[0].url; }
     }
     function savePlaylist() { localStorage.setItem('bgmPlaylist', JSON.stringify(bgmPlaylist)); }
     function loadPlaylist() {
@@ -144,15 +144,38 @@ document.addEventListener('DOMContentLoaded', () => {
         if (selectedIndex !== undefined) { const removed = bgmPlaylist.splice(selectedIndex, 1); savePlaylist(); populateBgmSelector(); showToast(`已删除: ${removed[0].name}`); }
     }
     function handleBgmSelection() { if (bgmPlaylist.length === 0) return; const selectedUrl = bgmSelector.value; bgm.src = selectedUrl; localStorage.setItem('lastSelectedBgmUrl', selectedUrl); }
-    
+
     /* --- Settings & Data Functions --- */
-    function saveSettings() { const settings = { rowCount: $('rowCount').value, colCount: $('colCount').value, groupCount: $('groupCount').value }; localStorage.setItem('seatingAppSettings', JSON.stringify(settings)); }
+    function saveSettings() {
+        const settings = {
+            rowCount: $('rowCount').value, colCount: $('colCount').value, groupCount: $('groupCount').value, rules: {
+                enableGenderRule: $('enableGenderRule').checked,
+                forceGenderPairing: $('forceGenderPairing').checked,
+                deskPairDefinition: $('deskPairDefinition').value,
+                includeDiagonals: $('includeDiagonals').checked,
+                autoBalance: $('autoBalance').checked
+            },
+            avoidPairs: avoidPairs
+        }; localStorage.setItem('seatingAppSettings', JSON.stringify(settings));
+    }
     function loadSettings() {
         const savedSettings = localStorage.getItem('seatingAppSettings');
-        if (savedSettings) { const settings = JSON.parse(savedSettings); $('rowCount').value = settings.rowCount || 6; $('colCount').value = settings.colCount || 7; $('groupCount').value = settings.groupCount || 2; }
+        if (savedSettings) {
+            const settings = JSON.parse(savedSettings); $('rowCount').value = settings.rowCount || 6; $('colCount').value = settings.colCount || 7; $('groupCount').value = settings.groupCount || 2; if (settings.rules) {
+                $('enableGenderRule').checked = settings.rules.enableGenderRule || false;
+                $('forceGenderPairing').checked = settings.rules.forceGenderPairing || false;
+                $('deskPairDefinition').value = settings.rules.deskPairDefinition || '';
+                $('includeDiagonals').checked = settings.rules.includeDiagonals || false;
+                $('autoBalance').checked = settings.rules.autoBalance || false;
+            }
+            if (settings.avoidPairs && Array.isArray(settings.avoidPairs)) {
+                avoidPairs = settings.avoidPairs;
+                updateAvoidList(); // 恢复数据后，刷新互斥列表的显示
+            }
+        }
     }
     function processAndStoreStudents(studentData) {
-        if (!studentData || studentData.length === 0 || !studentData[0]['姓名'] || !studentData[0]['身高']) { if(studentData && studentData.length > 0) showToast('Excel格式不正确或无数据！', 'error'); return; }
+        if (!studentData || studentData.length === 0 || !studentData[0]['姓名'] || !studentData[0]['身高']) { if (studentData && studentData.length > 0) showToast('Excel格式不正确或无数据！', 'error'); return; }
         const sortedStudents = [...studentData].sort((a, b) => a['身高'] - b['身高']);
         allStudents = sortedStudents.map(s => s['姓名']);
         const numGroups = parseInt(groupCountInput.value, 10);
@@ -174,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('classStudentData', JSON.stringify(sortedStudents));
         const currentStudentNames = new Set(allStudents);
         Object.keys(fixedSeats).forEach(name => { if (!currentStudentNames.has(name)) { delete fixedSeats[name]; } });
-        avoidPairs = []; 
+        avoidPairs = [];
         updateAvoidList();
         updateAllSelects();
         renderSettingsPreview();
@@ -204,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         reader.readAsArrayBuffer(file);
     }
-    
+
     /* --- UI RENDERING & DOM MANIPULATION --- */
     function populateSelect(id, list) { const sel = $(id); sel.innerHTML = '<option value="">-- 请选择 --</option>'; list.forEach(name => { const opt = document.createElement("option"); opt.value = name; opt.textContent = name; sel.appendChild(opt); }); }
     function updateAllSelects() { populateSelect("avoidA", allStudents); populateSelect("avoidB", allStudents); }
@@ -214,6 +237,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const previewDiv = $('settingsPreview');
         const rows = parseInt($("rowCount").value, 10);
         const cols = parseInt($("colCount").value, 10);
+
+        const pairDef = $('deskPairDefinition').value;
+        const colToPairGroupMap = new Map(); // 使用 Map 存储 '列索引' -> '同桌组的颜色索引'
+        let pairGroupIndex = 0; // 用于循环分配颜色
+
+        try {
+            pairDef.split(',').forEach(pairStr => {
+                const pair = pairStr.trim().split('-').map(num => parseInt(num, 10) - 1); // 转为 0-based 索引
+                if (pair.length === 2 && !isNaN(pair[0]) && !isNaN(pair[1])) {
+                    // 将这对同桌的两个列都映射到当前的 pairGroupIndex
+                    colToPairGroupMap.set(pair[0], pairGroupIndex);
+                    colToPairGroupMap.set(pair[1], pairGroupIndex);
+                    pairGroupIndex = (pairGroupIndex + 1) % 6; // 使用模运算，确保颜色索引在 0-5 之间循环
+                }
+            });
+        } catch (e) { /* 解析失败则忽略 */ }
+
+
+
         if (isNaN(rows) || isNaN(cols) || rows <= 0 || cols <= 0) { previewDiv.innerHTML = ''; return; }
         let html = '<table>';
         html += '<thead><tr><th></th>';
@@ -223,10 +265,20 @@ document.addEventListener('DOMContentLoaded', () => {
             html += `<tr><th>第${r + 1}排</th>`;
             for (let c = cols - 1; c >= 0; c--) {
                 let studentName = Object.keys(fixedSeats).find(name => fixedSeats[name].row === r && fixedSeats[name].col === c);
+
+                // vvvv 修改此行 vvvv
+                let pairingClass = '';
+                if (colToPairGroupMap.has(c)) {
+                    pairingClass = `deskmate-pair-${colToPairGroupMap.get(c)}`; // 根据 Map 获取对应的颜色类
+                }
+
+                //let studentName = Object.keys(fixedSeats).find(name => fixedSeats[name].row === r && fixedSeats[name].col === c);
                 if (studentName) {
-                    html += `<td class="fixed-preview-seat" data-row="${r}" data-col="${c}" title="双击取消固定">${studentName}</td>`;
+                    // vvvv 在 class 中添加 pairingClass vvvv
+                    html += `<td class="fixed-preview-seat ${pairingClass}" data-row="${r}" data-col="${c}" title="双击取消固定">${studentName}</td>`;
                 } else {
-                    html += `<td data-row="${r}" data-col="${c}"></td>`;
+                    // vvvv 在 class 中添加 pairingClass vvvv
+                    html += `<td data-row="${r}" data-col="${c}" class="${pairingClass}"></td>`;
                 }
             }
             html += '</tr>';
@@ -257,7 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-        /* --- 新增：暂停/中止核心功能 --- */
+    /* --- 新增：暂停/中止核心功能 --- */
     async function pauseCheck() {
         while (isPaused && !isCancelled) {
             await delay(100); // 如果是暂停状态，则每100毫秒检查一次
@@ -266,7 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
             throw new Error("GenerationCancelled"); // 抛出一个特定错误来中断执行
         }
     }
-    
+
     // 切换主控制按钮和过程控制按钮的可用状态
     function toggleMainControls(enable) {
         generateBtn.disabled = !enable;
@@ -294,13 +346,69 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     }
-    
+
     /* --- CORE LOGIC: SEATING GENERATION --- */
     function hasConflict(rows) {
-        const genderRuleEnabled = document.getElementById('enableGenderRule').checked; const pairDef = document.getElementById('deskPairDefinition').value; 
-        if (genderRuleEnabled && pairDef) { try { const deskPairs = pairDef.split(',').map(pair => pair.trim().split('-').map(num => parseInt(num, 10) - 1)); for (let r = 0; r < rows.length; r++) { for (const pair of deskPairs) { if (pair.length !== 2 || isNaN(pair[0]) || isNaN(pair[1])) continue; const col1 = pair[0]; const col2 = pair[1]; const student1_name = rows[r][col1]; const student2_name = rows[r][col2]; if (student1_name && student2_name) { const gender1 = nameToGenderMap.get(student1_name); const gender2 = nameToGenderMap.get(student2_name); if (gender1 && gender2 && gender1 !== gender2) { return true; } } } } } catch (e) { console.error("解析同桌定义时出错，请检查格式:", e); } } 
-        const R = rows.length, C = rows[0] ? rows[0].length : 0; const includeDiagonals = $("includeDiagonals").checked; const adjacentOffsets = [[0, 1], [0, -1], [1, 0], [-1, 0]]; const diagonalOffsets = [[-1, -1], [-1, 1], [1, -1], [1, 1]]; const offsets = includeDiagonals ? [...adjacentOffsets, ...diagonalOffsets] : adjacentOffsets; 
-        for (const [p1, p2] of avoidPairs) { for (let r = 0; r < R; r++) { for (let c = 0; c < C; c++) { if (rows[r][c] === p1) { for (const [dr, dc] of offsets) { const nr = r + dr, nc = c + dc; if (nr >= 0 && nr < R && nc >= 0 && nc < C && rows[nr][nc] === p2) { return true; } } } } } } 
+        const genderRuleEnabled = document.getElementById('enableGenderRule').checked; const pairDef = document.getElementById('deskPairDefinition').value;
+        const forcePairingEnabled = document.getElementById('forceGenderPairing').checked;
+        if (forcePairingEnabled && pairDef) {
+            try {
+                const deskPairs = pairDef.split(',').map(pair => pair.trim().split('-').map(num => parseInt(num, 10) - 1));
+
+                let actual_M_M_pairs = 0;
+                let actual_F_F_pairs = 0;
+                let paired_M_count = 0;
+                let paired_F_count = 0;
+
+                // 1. 遍历所有座位，统计实际同性同桌数，并统计所有"同桌位"上的男女总数
+                for (let r = 0; r < rows.length; r++) {
+                    for (const pair of deskPairs) {
+                        if (pair.length !== 2 || isNaN(pair[0]) || isNaN(pair[1])) continue;
+                        const col1 = pair[0];
+                        const col2 = pair[1];
+                        const student1_name = rows[r][col1];
+                        const student2_name = rows[r][col2];
+
+                        const gender1 = student1_name ? nameToGenderMap.get(student1_name) : null;
+                        const gender2 = student2_name ? nameToGenderMap.get(student2_name) : null;
+
+                        // 统计同桌位上的男女总数
+                        if (gender1 === '男') paired_M_count++;
+                        else if (gender1 === '女') paired_F_count++;
+                        if (gender2 === '男') paired_M_count++;
+                        else if (gender2 === '女') paired_F_count++;
+
+                        // 统计实际同性同桌数
+                        if (student1_name && student2_name) {
+                            if (gender1 === '男' && gender2 === '男') actual_M_M_pairs++;
+                            else if (gender1 === '女' && gender2 === '女') actual_F_F_pairs++;
+                        }
+                    }
+                }
+
+                // 2. 计算数学上的 "最小" (不可避免) 的同性同桌数
+                let min_required_M_M = 0;
+                let min_required_F_F = 0;
+
+                if (paired_M_count > paired_F_count) {
+                    // 多出来的男生必须配对
+                    min_required_M_M = Math.ceil((paired_M_count - paired_F_count) / 2);
+                } else if (paired_F_count > paired_M_count) {
+                    // 多出来的女生必须配对
+                    min_required_F_F = Math.ceil((paired_F_count - paired_M_count) / 2);
+                }
+
+                // 3. 冲突检查：如果实际的同性配对数 > 最小要求数，则说明本可以排得更好
+                if (actual_M_M_pairs > min_required_M_M || actual_F_F_pairs > min_required_F_F) {
+                    return true; // 冲突！这个布局 "不够努力"
+                }
+
+            } catch (e) { console.error("解析同桌定义时出错(强制模式):", e); }
+        }
+
+        if (genderRuleEnabled && pairDef) { try { const deskPairs = pairDef.split(',').map(pair => pair.trim().split('-').map(num => parseInt(num, 10) - 1)); for (let r = 0; r < rows.length; r++) { for (const pair of deskPairs) { if (pair.length !== 2 || isNaN(pair[0]) || isNaN(pair[1])) continue; const col1 = pair[0]; const col2 = pair[1]; const student1_name = rows[r][col1]; const student2_name = rows[r][col2]; if (student1_name && student2_name) { const gender1 = nameToGenderMap.get(student1_name); const gender2 = nameToGenderMap.get(student2_name); if (gender1 && gender2 && gender1 !== gender2) { return true; } } } } } catch (e) { console.error("解析同桌定义时出错，请检查格式:", e); } }
+        const R = rows.length, C = rows[0] ? rows[0].length : 0; const includeDiagonals = $("includeDiagonals").checked; const adjacentOffsets = [[0, 1], [0, -1], [1, 0], [-1, 0]]; const diagonalOffsets = [[-1, -1], [-1, 1], [1, -1], [1, 1]]; const offsets = includeDiagonals ? [...adjacentOffsets, ...diagonalOffsets] : adjacentOffsets;
+        for (const [p1, p2] of avoidPairs) { for (let r = 0; r < R; r++) { for (let c = 0; c < C; c++) { if (rows[r][c] === p1) { for (const [dr, dc] of offsets) { const nr = r + dr, nc = c + dc; if (nr >= 0 && nr < R && nc >= 0 && nc < C && rows[nr][nc] === p2) { return true; } } } } } }
         return false;
     }
     async function generateSeating() {
@@ -363,7 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
             isCancelled = false;
         }
     }
-    
+
     /* --- DRAW FEATURE (最终修正版) --- */
     async function performDraw() {
         const countInput = $('drawCount');
@@ -442,9 +550,9 @@ document.addEventListener('DOMContentLoaded', () => {
     /* --- INITIALIZATION & EVENT LISTENERS --- */
     function init() {
         loadTheme();
-        loadSettings(); 
+        loadSettings();
         loadPlaylist();
-        updateGroupRowSelects(); 
+        updateGroupRowSelects();
         renderSettingsPreview();
 
         themeToggle.addEventListener('click', toggleTheme);
@@ -462,11 +570,22 @@ document.addEventListener('DOMContentLoaded', () => {
         settingsBtn.addEventListener("click", (e) => { const isOpen = settingsPanel.style.display === "block"; settingsPanel.style.display = isOpen ? "none" : "block"; e.target.textContent = isOpen ? "⚙ 设置" : "✔ 完成设置"; if (!isOpen) drawPanel.style.display = 'none'; });
         drawBtn.addEventListener("click", () => { const isOpen = drawPanel.style.display === "block"; drawPanel.style.display = isOpen ? "none" : "block"; if (!isOpen) { settingsPanel.style.display = 'none'; settingsBtn.textContent = "⚙ 设置"; } });
         $('performDrawBtn').addEventListener('click', performDraw);
-        $('addAvoidPairBtn').addEventListener('click', () => { const a = $("avoidA").value; const b = $("avoidB").value; if (!a || !b || a === b) { showToast("请选择不同的两个名字", 'error'); return; } avoidPairs.push([a, b]); updateAvoidList(); });
-        settingsPanel.addEventListener('click', (e) => { if (e.target && e.target.classList.contains('deleteBtn')) { const type = e.target.dataset.type; if (type === 'avoid') { avoidPairs.splice(parseInt(e.target.dataset.index, 10), 1); updateAvoidList(); } } });
+        $('addAvoidPairBtn').addEventListener('click', () => { const a = $("avoidA").value; const b = $("avoidB").value; if (!a || !b || a === b) { showToast("请选择不同的两个名字", 'error'); return; } avoidPairs.push([a, b]); updateAvoidList(); saveSettings();});
+        settingsPanel.addEventListener('click', (e) => { if (e.target && e.target.classList.contains('deleteBtn')) { const type = e.target.dataset.type; if (type === 'avoid') { avoidPairs.splice(parseInt(e.target.dataset.index, 10), 1); updateAvoidList(); saveSettings();} } });
         $('rowCount').addEventListener('input', () => { updateGroupRowSelects(); renderSettingsPreview(); saveSettings(); });
         $('colCount').addEventListener('input', () => { updateGroupRowSelects(); renderSettingsPreview(); saveSettings(); });
-         // 暂停/中止功能事件绑定
+
+        $('deskPairDefinition').addEventListener('input', () => { // <--- 你之前加的
+            renderSettingsPreview();
+            saveSettings(); // vvvv 在这里添加 saveSettings() vvvv
+        });
+
+        $('enableGenderRule').addEventListener('change', saveSettings);
+        $('forceGenderPairing').addEventListener('change', saveSettings);
+        $('includeDiagonals').addEventListener('change', saveSettings);
+        $('autoBalance').addEventListener('change', saveSettings);
+
+        // 暂停/中止功能事件绑定
         pauseResumeBtn.addEventListener('click', () => {
             isPaused = !isPaused;
             pauseResumeBtn.textContent = isPaused ? '▶️ 继续' : '⏸️ 暂停';
@@ -479,6 +598,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         loadFromLocalStorage();
     }
-    
+
     init();
 });

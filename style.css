@@ -145,7 +145,7 @@ button:disabled:hover:before {
     margin: 20px auto;
     display: none;
     text-align: left;
-    max-width: 600px;
+    max-width: 1000px;
 }
 
 .panel h3 {
@@ -615,3 +615,19 @@ body.light-theme #drawResult .reel-item {
 body.light-theme #drawResult .reel-item.winner {
     color: #D32F2F !important;
 }
+
+#settingsPreview td.deskmate-pair-0 { background-color: rgba(0, 245, 212, 0.15); } /* 青色 */
+#settingsPreview td.deskmate-pair-1 { background-color: rgba(255, 165, 0, 0.15); } /* 橙色 */
+#settingsPreview td.deskmate-pair-2 { background-color: rgba(138, 43, 226, 0.15); } /* 紫罗兰色 */
+#settingsPreview td.deskmate-pair-3 { background-color: rgba(255, 99, 71, 0.15); } /* 番茄红 */
+#settingsPreview td.deskmate-pair-4 { background-color: rgba(0, 200, 0, 0.15); } /* 绿色 */
+#settingsPreview td.deskmate-pair-5 { background-color: rgba(30, 144, 255, 0.15); } /* 道奇蓝 */
+/* 可以根据需要添加更多颜色，或者修改现有颜色 */
+
+/* 浅色主题下的对应颜色 */
+body.light-theme #settingsPreview td.deskmate-pair-0 { background-color: rgba(0, 123, 255, 0.15); }
+body.light-theme #settingsPreview td.deskmate-pair-1 { background-color: rgba(255, 140, 0, 0.15); }
+body.light-theme #settingsPreview td.deskmate-pair-2 { background-color: rgba(128, 0, 128, 0.15); }
+body.light-theme #settingsPreview td.deskmate-pair-3 { background-color: rgba(220, 20, 60, 0.15); }
+body.light-theme #settingsPreview td.deskmate-pair-4 { background-color: rgba(34, 139, 34, 0.15); }
+body.light-theme #settingsPreview td.deskmate-pair-5 { background-color: rgba(65, 105, 225, 0.15); }
