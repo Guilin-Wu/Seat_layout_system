@@ -154,8 +154,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 deskPairDefinition: $('deskPairDefinition').value,
                 includeDiagonals: $('includeDiagonals').checked,
                 autoBalance: $('autoBalance').checked
-            },
-            avoidPairs: avoidPairs
+            }
+            
         }; localStorage.setItem('seatingAppSettings', JSON.stringify(settings));
     }
     function loadSettings() {
@@ -167,10 +167,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 $('deskPairDefinition').value = settings.rules.deskPairDefinition || '';
                 $('includeDiagonals').checked = settings.rules.includeDiagonals || false;
                 $('autoBalance').checked = settings.rules.autoBalance || false;
-            }
-            if (settings.avoidPairs && Array.isArray(settings.avoidPairs)) {
-                avoidPairs = settings.avoidPairs;
-                updateAvoidList(); // 恢复数据后，刷新互斥列表的显示
             }
         }
     }
@@ -570,8 +566,8 @@ document.addEventListener('DOMContentLoaded', () => {
         settingsBtn.addEventListener("click", (e) => { const isOpen = settingsPanel.style.display === "block"; settingsPanel.style.display = isOpen ? "none" : "block"; e.target.textContent = isOpen ? "⚙ 设置" : "✔ 完成设置"; if (!isOpen) drawPanel.style.display = 'none'; });
         drawBtn.addEventListener("click", () => { const isOpen = drawPanel.style.display === "block"; drawPanel.style.display = isOpen ? "none" : "block"; if (!isOpen) { settingsPanel.style.display = 'none'; settingsBtn.textContent = "⚙ 设置"; } });
         $('performDrawBtn').addEventListener('click', performDraw);
-        $('addAvoidPairBtn').addEventListener('click', () => { const a = $("avoidA").value; const b = $("avoidB").value; if (!a || !b || a === b) { showToast("请选择不同的两个名字", 'error'); return; } avoidPairs.push([a, b]); updateAvoidList(); saveSettings();});
-        settingsPanel.addEventListener('click', (e) => { if (e.target && e.target.classList.contains('deleteBtn')) { const type = e.target.dataset.type; if (type === 'avoid') { avoidPairs.splice(parseInt(e.target.dataset.index, 10), 1); updateAvoidList(); saveSettings();} } });
+        $('addAvoidPairBtn').addEventListener('click', () => { const a = $("avoidA").value; const b = $("avoidB").value; if (!a || !b || a === b) { showToast("请选择不同的两个名字", 'error'); return; } avoidPairs.push([a, b]); updateAvoidList(); });
+        settingsPanel.addEventListener('click', (e) => { if (e.target && e.target.classList.contains('deleteBtn')) { const type = e.target.dataset.type; if (type === 'avoid') { avoidPairs.splice(parseInt(e.target.dataset.index, 10), 1); updateAvoidList(); } } });
         $('rowCount').addEventListener('input', () => { updateGroupRowSelects(); renderSettingsPreview(); saveSettings(); });
         $('colCount').addEventListener('input', () => { updateGroupRowSelects(); renderSettingsPreview(); saveSettings(); });
 
