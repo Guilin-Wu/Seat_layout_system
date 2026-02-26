@@ -14,12 +14,13 @@
     <div class="stage no-print">-- 讲台 --</div>
 
     <div class="controls no-print">
-      <button id="generateBtn" disabled>生成随机座位</button>
-      <button id="settingsBtn">⚙ 设置</button>
-      <button id="drawBtn" disabled>🏆 抽签</button>
-      <button id="printBtn">🖨️ 打印/导出</button>
-      <button id="importSettingsBtn">📥 导入配置</button>
-      <button id="exportSettingsBtn">📤 导出配置</button>
+      <button id="generateBtn" disabled>随机座位</button>
+      <button id="generateWithAiBtn" disabled>AI排座</button>
+      <button id="settingsBtn">设置</button>
+      <button id="drawBtn" disabled>抽签</button>
+      <button id="printBtn">打印</button>
+      <button id="importSettingsBtn">导入</button>
+      <button id="exportSettingsBtn">导出</button>
     </div>
 
     <div id="in-progress-controls" class="controls no-print" style="display: none;">
@@ -41,6 +42,9 @@
           <button id="clearListBtn">清除名单</button>
           <div id="fileStatus" class="hint">
             格式要求：姓名、性别、身高为必需列。
+          </div>
+          <div style="margin-top: 10px;">
+            <button id="manageTagsBtn">🏷️ 管理学生标签</button>
           </div>
         </div>
         <hr/>
@@ -89,6 +93,35 @@
               </div>
               <div id="settingsPreview" style="width: 75%;"></div>
             </div>
+            <div style="margin-top: 15px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <button id="saveFixedSeatsBtn">💾 保存当前座位</button>
+              <select id="savedSeatsSelect" style="width: 200px;"></select>
+              <button id="loadSavedSeatsBtn">📂 加载</button>
+              <button id="renameSavedSeatsBtn">✏️ 重命名</button>
+              <button id="deleteSavedSeatsBtn">🗑️ 删除</button>
+            </div>
+          </div>
+        </div>
+        <hr/>
+
+        <h4><span class="section-num">3.5</span>AI智能排座</h4>
+        <div class="setting-section">
+          <div style="margin-bottom: 10px;">
+            <b>DeepSeek API Key:</b>
+            <input type="password" id="deepseekApiKeyInput" placeholder="sk-xxxxxxxx" style="width: 60%; margin-left: 10px;">
+            <button id="saveDeepseekApiKeyBtn" style="padding: 5px 15px;">保存</button>
+          </div>
+          <div id="deepseekStatus" class="hint" style="margin-bottom: 10px;"></div>
+          <div class="hint">
+            <strong>排座优先级规则：</strong><br>
+            1. <strong>强制规则</strong>（最高）：男女不同桌/强制男女同桌/对角线规则<br>
+            2. <strong>动静结合</strong>：活泼学生与安静学生搭配<br>
+            3. <strong>同类分散</strong>：负面标签学生分散安排<br>
+            4. <strong>身高原则</strong>：高坐后排，矮坐前排<br>
+            5. <strong>特殊位置</strong>：黄金C位、VIP专区、后排稳定区<br>
+            6. <strong>性别原则</strong>（最低）：适当男女搭配<br>
+            <br>
+            <strong>注：</strong>AI智能排座按钮已在主界面"随机座位"按钮旁边
           </div>
         </div>
         <hr/>
@@ -128,6 +161,90 @@
   </div>
 
   <div id="toast-container"></div>
+
+  <!-- 学生标签管理弹窗 -->
+  <div id="tagsModal" class="modal">
+    <div class="modal-content tags-modal-content">
+      <div class="modal-header">
+        <h3>学生标签管理</h3>
+        <span id="closeTagsModal" class="close">&times;</span>
+      </div>
+      <div class="modal-body">
+        <!-- 标签管理区域 -->
+        <div class="tags-section">
+          <div class="tags-section-header">
+            <span class="tags-section-title">预设标签</span>
+            <span class="tags-hint">点击学生行的编辑按钮设置标签</span>
+          </div>
+          <div id="presetTagsContainer" class="preset-tags-container">
+            <label class="tag-checkbox"><input type="checkbox" value="爱讲话"><span>爱讲话</span></label>
+            <label class="tag-checkbox"><input type="checkbox" value="调皮"><span>调皮</span></label>
+            <label class="tag-checkbox"><input type="checkbox" value="内向"><span>内向</span></label>
+            <label class="tag-checkbox"><input type="checkbox" value="外向"><span>外向</span></label>
+            <label class="tag-checkbox"><input type="checkbox" value="认真学习"><span>认真学习</span></label>
+            <label class="tag-checkbox"><input type="checkbox" value="体育好"><span>体育好</span></label>
+            <label class="tag-checkbox"><input type="checkbox" value="文艺好"><span>文艺好</span></label>
+            <label class="tag-checkbox"><input type="checkbox" value="爱睡觉"><span>爱睡觉</span></label>
+            <label class="tag-checkbox"><input type="checkbox" value="注意力不集中"><span>注意力不集中</span></label>
+            <label class="tag-checkbox"><input type="checkbox" value="乐于助人"><span>乐于助人</span></label>
+            <label class="tag-checkbox"><input type="checkbox" value="爱捣乱"><span>爱捣乱</span></label>
+            <label class="tag-checkbox"><input type="checkbox" value="害羞"><span>害羞</span></label>
+            <label class="tag-checkbox"><input type="checkbox" value="活泼"><span>活泼</span></label>
+            <label class="tag-checkbox"><input type="checkbox" value="沉稳"><span>沉稳</span></label>
+            <label class="tag-checkbox"><input type="checkbox" value="敏感"><span>敏感</span></label>
+            <label class="tag-checkbox"><input type="checkbox" value="自律"><span>自律</span></label>
+          </div>
+          <div class="custom-tag-input-group">
+            <input type="text" id="customTagInput" placeholder="新增自定义标签">
+            <button id="addCustomTagBtn">+ 添加</button>
+          </div>
+        </div>
+        
+        <!-- 学生表格 -->
+        <div class="tags-table-wrapper">
+          <table class="tags-table">
+            <thead>
+              <tr>
+                <th>姓名</th>
+                <th>性别</th>
+                <th>身高</th>
+                <th>标签</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="tagsTableBody">
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="saveStudentTagsBtn" class="btn-primary">保存全部</button>
+        <button id="closeTagsModalBtn" class="btn-secondary">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 标签编辑弹窗 -->
+  <div id="editTagModal" class="modal">
+    <div class="modal-content edit-tag-modal-content">
+      <div class="modal-header">
+        <h3 id="editTagTitle">编辑标签</h3>
+        <span id="closeEditTagModal" class="close">&times;</span>
+      </div>
+      <div class="modal-body">
+        <p class="edit-tag-hint">勾选标签为该学生添加特征</p>
+        <div id="editPresetTags" class="edit-preset-tags"></div>
+        <div class="custom-tag-input-group">
+          <input type="text" id="editCustomTagInput" placeholder="新增自定义标签">
+          <button id="editAddCustomTagBtn">+ 添加</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="confirmEditTagBtn" class="btn-primary">确定</button>
+        <button id="cancelEditTagBtn" class="btn-secondary">取消</button>
+      </div>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>
