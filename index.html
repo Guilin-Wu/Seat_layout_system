@@ -170,7 +170,7 @@
         <span id="closeTagsModal" class="close">&times;</span>
       </div>
       <div class="modal-body">
-        <!-- 标签管理区域 -->
+        <!-- 预设标签区域 -->
         <div class="tags-section">
           <div class="tags-section-header">
             <span class="tags-section-title">预设标签</span>
@@ -194,10 +194,19 @@
             <label class="tag-checkbox"><input type="checkbox" value="敏感"><span>敏感</span></label>
             <label class="tag-checkbox"><input type="checkbox" value="自律"><span>自律</span></label>
           </div>
+        </div>
+        
+        <!-- 自定义标签管理区域 -->
+        <div class="tags-section" style="border-top: 1px dashed var(--border-color); padding-top: 15px;">
+          <div class="tags-section-header">
+            <span class="tags-section-title">自定义标签管理</span>
+            <span class="tags-hint">可添加、重命名或删除自定义标签</span>
+          </div>
           <div class="custom-tag-input-group">
-            <input type="text" id="customTagInput" placeholder="新增自定义标签">
+            <input type="text" id="customTagInput" placeholder="输入自定义标签">
             <button id="addCustomTagBtn">+ 添加</button>
           </div>
+          <div id="customTagsList" class="preset-tags-container" style="margin-top: 10px;"></div>
         </div>
         
         <!-- 学生表格 -->

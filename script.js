@@ -66,6 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const editCustomTagInput = $('editCustomTagInput');
     const confirmEditTagBtn = $('confirmEditTagBtn');
     const cancelEditTagBtn = $('cancelEditTagBtn');
+    const customTagsList = $('customTagsList');
 
     /* --- 主题切换 --- */
     function toggleTheme() {
@@ -261,13 +262,52 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderPresetTags() {
-        const allTags = [...defaultPresetTags, ...customTags];
+        // 只显示预设标签，不包含自定义标签
         presetTagsContainer.innerHTML = '';
-        allTags.forEach(tag => {
+        defaultPresetTags.forEach(tag => {
             const label = document.createElement('label');
             label.className = 'tag-checkbox';
             label.innerHTML = `<input type="checkbox" value="${tag}"><span>${tag}</span>`;
             presetTagsContainer.appendChild(label);
+        });
+        
+        // 渲染自定义标签列表（带删除/重命名按钮）
+        renderCustomTagsList();
+    }
+
+    function renderCustomTagsList() {
+        customTagsList.innerHTML = '';
+        if (customTags.length === 0) {
+            customTagsList.innerHTML = '<span style="color: var(--text-secondary); font-size: 12px;">暂无自定义标签</span>';
+            return;
+        }
+        
+        customTags.forEach(tag => {
+            const tagDiv = document.createElement('div');
+            tagDiv.className = 'custom-tag-item';
+            tagDiv.innerHTML = `
+                <span>${tag}</span>
+                <div class="custom-tag-actions">
+                    <button class="rename-tag-btn" data-tag="${tag}" title="重命名">✏️</button>
+                    <button class="delete-tag-btn" data-tag="${tag}" title="删除">🗑️</button>
+                </div>
+            `;
+            customTagsList.appendChild(tagDiv);
+        });
+        
+        // 添加删除和重命名事件
+        document.querySelectorAll('.delete-tag-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const tag = e.target.dataset.tag;
+                deleteCustomTag(tag);
+            });
+        });
+        
+        document.querySelectorAll('.rename-tag-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const tag = e.target.dataset.tag;
+                renameCustomTag(tag);
+            });
         });
     }
 
@@ -396,8 +436,85 @@ document.addEventListener('DOMContentLoaded', () => {
         customTags.push(tag);
         saveCustomTagsToStorage();
         renderPresetTags();
+        
+        // 同时更新编辑弹窗中的预设标签
+        if (currentEditingStudent) {
+            const currentTags = studentTags[currentEditingStudent] || [];
+            const newAllTags = [...defaultPresetTags, ...customTags];
+            editPresetTags.innerHTML = '';
+            newAllTags.forEach(t => {
+                const label = document.createElement('label');
+                label.className = 'tag-checkbox';
+                label.innerHTML = `<input type="checkbox" value="${t}" ${currentTags.includes(t) ? 'checked' : ''}><span>${t}</span>`;
+                editPresetTags.appendChild(label);
+            });
+        }
+        
+        // 实时更新表格中的标签显示
+        renderTagsTable();
+        
         customTagInput.value = '';
         showToast(`已添加自定义标签: ${tag}`);
+    }
+
+    function deleteCustomTag(tag) {
+        if (!confirm(`确定要删除自定义标签 "${tag}" 吗？`)) return;
+        
+        // 从自定义标签中移除
+        customTags = customTags.filter(t => t !== tag);
+        saveCustomTagsToStorage();
+        
+        // 从所有学生的标签中移除这个标签
+        for (const name in studentTags) {
+            studentTags[name] = studentTags[name].filter(t => t !== tag);
+        }
+        saveStudentTagsToStorage();
+        
+        renderPresetTags();
+        renderTagsTable();
+        showToast(`已删除标签: ${tag}`);
+    }
+
+    function renameCustomTag(oldTag) {
+        const newTag = prompt(`请输入标签 "${oldTag}" 的新名称:`, oldTag);
+        if (!newTag || newTag.trim() === '' || newTag === oldTag) return;
+        
+        const allTags = [...defaultPresetTags, ...customTags];
+        if (allTags.includes(newTag)) {
+            showToast('该标签名称已存在！', 'error');
+            return;
+        }
+        
+        // 更新自定义标签
+        const index = customTags.indexOf(oldTag);
+        if (index > -1) {
+            customTags[index] = newTag;
+        }
+        saveCustomTagsToStorage();
+        
+        // 更新所有学生的标签
+        for (const name in studentTags) {
+            studentTags[name] = studentTags[name].map(t => t === oldTag ? newTag : t);
+        }
+        saveStudentTagsToStorage();
+        
+        renderPresetTags();
+        renderTagsTable();
+        
+        // 如果正在编辑，更新编辑弹窗
+        if (currentEditingStudent) {
+            const currentTags = studentTags[currentEditingStudent] || [];
+            const newAllTags = [...defaultPresetTags, ...customTags];
+            editPresetTags.innerHTML = '';
+            newAllTags.forEach(t => {
+                const label = document.createElement('label');
+                label.className = 'tag-checkbox';
+                label.innerHTML = `<input type="checkbox" value="${t}" ${currentTags.includes(t) ? 'checked' : ''}><span>${t}</span>`;
+                editPresetTags.appendChild(label);
+            });
+        }
+        
+        showToast(`已重命名为: ${newTag}`);
     }
 
     function openTagsModal() {
@@ -1455,6 +1572,7 @@ ${rulesText}
         cancelEditTagBtn.addEventListener('click', closeEditTagModalFunc);
         confirmEditTagBtn.addEventListener('click', confirmEditTag);
         $('editAddCustomTagBtn').addEventListener('click', addCustomTagInEdit);
+        $('addCustomTagBtn').addEventListener('click', addCustomTag);
         
         // 点击弹窗外部关闭
         window.addEventListener('click', (e) => {
