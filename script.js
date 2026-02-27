@@ -59,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const deepseekApiKeyInput = $('deepseekApiKeyInput');
     const saveDeepseekApiKeyBtn = $('saveDeepseekApiKeyBtn');
     const generateWithAiBtn = $('generateWithAiBtn');
+    const rerollAiBtn = $('rerollAiBtn');
     const deepseekStatus = $('deepseekStatus');
     const editTagModal = $('editTagModal');
     const editTagTitle = $('editTagTitle');
@@ -791,6 +792,9 @@ ${rulesText}
                 aiReasonsDiv.style.display = 'none';
                 showToast('AI 智能座位生成完成！');
             }
+            
+            // 显示重排按钮
+            rerollAiBtn.style.display = 'inline-block';
 
         } catch (error) {
             console.error('AI 生成失败:', error);
@@ -1620,6 +1624,7 @@ ${rulesText}
         // DeepSeek AI 功能事件绑定
         saveDeepseekApiKeyBtn.addEventListener('click', saveDeepseekApiKey);
         generateWithAiBtn.addEventListener('click', generateSeatingWithAI);
+        rerollAiBtn.addEventListener('click', generateSeatingWithAI);
         updateDeepseekStatus();
 
         // 暂停/中止功能事件绑定
