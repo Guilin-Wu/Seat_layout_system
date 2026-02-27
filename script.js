@@ -341,7 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${gender}</td>
                 <td>${height}</td>
                 <td><div class="student-tags">${tagsHtml}</div></td>
-                <td><button class="edit-btn" data-student="${name}">编辑</button></td>
+                <td><button class="edit-btn" data-student="${name.replace(/"/g, '&quot;')}">编辑</button></td>
             `;
             tagsTableBody.appendChild(tr);
         });
@@ -349,7 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // 添加编辑按钮事件
         document.querySelectorAll('.edit-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const studentName = e.target.dataset.student;
+                const studentName = e.target.getAttribute('data-student');
                 openEditTagModal(studentName);
             });
         });
@@ -358,6 +358,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentEditingStudent = null;
 
     function openEditTagModal(studentName) {
+        if (!studentName) {
+            console.error('学生名称无效');
+            showToast('无法编辑，请重试', 'error');
+            return;
+        }
         currentEditingStudent = studentName;
         editTagTitle.textContent = `编辑 ${studentName} 的标签`;
         
