@@ -47,6 +47,19 @@ h1 {
     letter-spacing: 1px;
 }
 
+.ai-reasons {
+    max-width: 900px;
+    margin: 0 auto 20px;
+    padding: 15px 20px;
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.2), rgba(167, 139, 250, 0.1));
+    border: 1px solid rgba(124, 58, 237, 0.3);
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.6;
+    text-align: left;
+}
+
 /* --- 控制器区域 --- */
 .controls {
     margin-bottom: 25px;

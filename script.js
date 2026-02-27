@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const settingsPanel = $('settingsPanel');
     const drawPanel = $('drawPanel');
     const statusDiv = $('status');
+    const aiReasonsDiv = $('aiReasons');
     const excelFile = $('excelFile');
     const clearListBtn = $('clearListBtn');
     const groupCountInput = $('groupCount');
@@ -644,6 +645,10 @@ ${rulesText}
 - 身高相近的学生安排在同一排
 - 高个子坐后排，矮个子坐前排
 
+【座位填充原则】
+- 前排优先填满：前排（第1-2排）尽量不要留空位，确保每个位置都有学生
+- 所有学生都应该有座位，如果学生数少于座位数，空位留在后排
+
 【特殊位置安排】
 1. 前排中间（黄金C位）：安排需要老师关注、自制力稍弱或视力不佳的学生
 2. 讲台两旁（VIP专区）：安排注意力特别容易分散的学生，老师一个眼神就能提醒
@@ -652,10 +657,17 @@ ${rulesText}
 【性别原则 - 最低优先级】
 - 适当考虑男女搭配，但避免强制
 
-请返回座位安排，格式为JSON数组，每个元素包含学生姓名和座位位置(行从0开始，列从0开始):
-[{"name": "张三", "row": 0, "col": 0}, {"name": "李四", "row": 0, "col": 1}, ...]
+请返回两个内容：
+1. 座位安排JSON数组（格式：[{"name": "张三", "row": 0, "col": 0}, ...]），行从0开始（0是第一排）
+2. 排座理由简述（用中文，50字以内）
 
-只返回JSON数组，不要其他文字。`;
+返回格式：
+---JSON---
+[{"name": "张三", "row": 0, "col": 0}, ...]
+---理由---
+排座理由：...
+
+只返回以上格式，不要其他文字。`;
 
             const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
                 method: 'POST',
@@ -679,15 +691,22 @@ ${rulesText}
             const data = await response.json();
             const aiResponse = data.choices[0].message.content;
 
-            // 解析 AI 返回的 JSON
+            // 解析 AI 返回的 JSON 和理由
             let seatAssignments;
+            let seatingReasons = '';
             try {
-                // 尝试提取 JSON 数组
-                const jsonMatch = aiResponse.match(/\[[\s\S]*\]/);
+                // 提取 JSON 数组
+                const jsonMatch = aiResponse.match(/\[[\s\S]*?\]/);
                 if (!jsonMatch) {
                     throw new Error('无法解析AI返回的数据');
                 }
                 seatAssignments = JSON.parse(jsonMatch[0]);
+                
+                // 提取排座理由
+                const reasonMatch = aiResponse.match(/排座理由[：:]\s*(.+)/);
+                if (reasonMatch) {
+                    seatingReasons = reasonMatch[1].trim();
+                }
             } catch (parseError) {
                 console.error('解析AI响应失败:', parseError);
                 showToast('AI 返回格式解析失败，使用随机生成', 'error');
@@ -757,7 +776,16 @@ ${rulesText}
             await renderSeats(grid);
 
             deepseekStatus.textContent = '✅ AI 座位安排完成！';
-            showToast('AI 智能座位生成完成！');
+            
+            // 显示排座理由
+            if (seatingReasons) {
+                aiReasonsDiv.innerHTML = `<strong>🤖 AI排座理由：</strong>${seatingReasons}`;
+                aiReasonsDiv.style.display = 'block';
+                showToast('AI 智能座位生成完成！');
+            } else {
+                aiReasonsDiv.style.display = 'none';
+                showToast('AI 智能座位生成完成！');
+            }
 
         } catch (error) {
             console.error('AI 生成失败:', error);
