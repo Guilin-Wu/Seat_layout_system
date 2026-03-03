@@ -624,6 +624,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (rules.includeDiagonals) {
                 rulesText += '\n【强制规则】对角线也算相邻：对角线位置的相邻也需要遵守规则。';
             }
+            if (avoidPairs.length > 0) {
+                rulesText += '\n【强制规则】互斥学生：以下学生不能相邻坐在一起：' + avoidPairs.map(p => p[0] + '和' + p[1]).join('、') + '。';
+            }
 
             // 构建 prompt
             const prompt = `你是一个班级座位安排专家。请根据以下学生信息和标签，生成一个${rows}行${cols}列的座位安排。
@@ -752,6 +755,30 @@ ${rulesText}
                 return;
             }
 
+            // 检查互斥对规则
+            const rulesForCheck = {
+                includeDiagonal: $('includeDiagonal').checked
+            };
+            const adjacentOffsets = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+            const diagonalOffsets = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+            const offsets = rules.includeDiagonals ? [...adjacentOffsets, ...diagonalOffsets] : adjacentOffsets;
+            
+            for (const [nameA, posA] of Object.entries(newFixedSeats)) {
+                for (const [nameB, posB] of Object.entries(newFixedSeats)) {
+                    if (nameA >= nameB) continue;
+                    if (isAvoidPair(nameA, nameB, avoidPairs)) {
+                        const dr = Math.abs(posA.row - posB.row);
+                        const dc = Math.abs(posA.col - posB.col);
+                        const isAdjacent = offsets.some(([dr2, dc2]) => dr === Math.abs(dr2) && dc === Math.abs(dc2));
+                        if (isAdjacent) {
+                            showToast('AI 生成的座位违反互斥规则，使用随机生成', 'error');
+                            generateSeating();
+                            return;
+                        }
+                    }
+                }
+            }
+
             // 应用固定座位
             fixedSeats = newFixedSeats;
             renderSettingsPreview();
@@ -781,8 +808,23 @@ ${rulesText}
             // 渲染座位
             await renderSeats(grid);
 
-            deepseekStatus.textContent = '✅ AI 座位安排完成！';
+            // 更新固定座位数据以便在设置面板中微调
+            fixedSeats = {};
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    if (grid[r][c]) {
+                        fixedSeats[grid[r][c]] = { row: r, col: c };
+                    }
+                }
+            }
+            maxRows = rows;
+            maxCols = cols;
+            $('rowCount').value = rows;
+            $('colCount').value = cols;
+            renderSettingsPreview();
+            populateUnseatedList();
             
+            deepseekStatus.textContent = '✅ AI 座位安排完成！';
             // 显示排座理由
             if (seatingReasons) {
                 aiReasonsDiv.innerHTML = `<strong>🤖 AI排座理由：</strong>${seatingReasons}`;
@@ -867,30 +909,34 @@ ${rulesText}
         if (!studentData || studentData.length === 0 || !studentData[0]['姓名'] || !studentData[0]['身高']) { if (studentData && studentData.length > 0) showToast('Excel格式不正确或无数据！', 'error'); return; }
         const sortedStudents = [...studentData].sort((a, b) => a['身高'] - b['身高']);
         allStudents = sortedStudents.map(s => s['姓名']);
-        const numGroups = parseInt(groupCountInput.value, 10);
-        if (numGroups < 2) { showToast("分组份数不能小于2", 'error'); return; }
-        studentGroups = [];
-        const totalStudents = sortedStudents.length;
-        let currentIndex = 0;
-        for (let i = 0; i < numGroups; i++) {
-            const groupSize = Math.floor(totalStudents / numGroups) + (i < totalStudents % numGroups ? 1 : 0);
-            const groupData = sortedStudents.slice(currentIndex, currentIndex + groupSize);
-            studentGroups.push(groupData.map(s => s['姓名']));
-            currentIndex += groupSize;
-        }
         studentDetails = [...sortedStudents];
         nameToGenderMap.clear();
         studentDetails.forEach(student => { nameToGenderMap.set(student['姓名'], student['性别']); });
-        $('fileStatus').textContent = `名单加载成功！总计: ${allStudents.length}人。(已按身高分为 ${numGroups} 份)`;
+        recalculateStudentGroups();
+        $('fileStatus').textContent = `名单加载成功！总计: ${allStudents.length}人。(已按身高分为 ${groupCountInput.value} 份)`;
         if (allStudents.length > 0) { generateBtn.disabled = false; drawBtn.disabled = false; if (getDeepseekApiKey()) generateWithAiBtn.disabled = false; }
         localStorage.setItem('classStudentData', JSON.stringify(sortedStudents));
         const currentStudentNames = new Set(allStudents);
         Object.keys(fixedSeats).forEach(name => { if (!currentStudentNames.has(name)) { delete fixedSeats[name]; } });
-        avoidPairs = [];
+        avoidPairs = avoidPairs.filter(pair => currentStudentNames.has(pair[0]) && currentStudentNames.has(pair[1]));
         updateAvoidList();
         updateAllSelects();
         renderSettingsPreview();
         populateUnseatedList();
+    }
+    function recalculateStudentGroups() {
+        if (allStudents.length === 0) return;
+        const numGroups = parseInt(groupCountInput.value, 10);
+        if (numGroups < 2) { showToast("分组份数不能小于2", 'error'); return; }
+        studentGroups = [];
+        const totalStudents = allStudents.length;
+        let currentIndex = 0;
+        for (let i = 0; i < numGroups; i++) {
+            const groupSize = Math.floor(totalStudents / numGroups) + (i < totalStudents % numGroups ? 1 : 0);
+            const groupData = allStudents.slice(currentIndex, currentIndex + groupSize);
+            studentGroups.push(groupData);
+            currentIndex += groupSize;
+        }
     }
     function loadFromLocalStorage() { const savedData = localStorage.getItem('classStudentData'); if (savedData) { const students = JSON.parse(savedData); processAndStoreStudents(students); } }
     function clearStudentData() {
@@ -942,10 +988,10 @@ ${rulesText}
         if (isNaN(rows) || isNaN(cols) || rows <= 0 || cols <= 0) { previewDiv.innerHTML = ''; return; }
         let html = '<table>';
         html += '<thead><tr><th></th>';
-        for (let c = cols - 1; c >= 0; c--) { html += `<th>第${c + 1}组</th>`; }
+        for (let c = cols - 1; c >= 0; c--) { html += `<th class="col-header" data-col="${c}" title="拖动整列">第${c + 1}组</th>`; }
         html += '</tr></thead><tbody>';
         for (let r = 0; r < rows; r++) {
-            html += `<tr><th>第${r + 1}排</th>`;
+            html += `<tr><th class="row-header" data-row="${r}" title="拖动整行">第${r + 1}排</th>`;
             for (let c = cols - 1; c >= 0; c--) {
                 let studentName = Object.keys(fixedSeats).find(name => fixedSeats[name].row === r && fixedSeats[name].col === c);
                 let pairingClass = '';
@@ -968,6 +1014,7 @@ ${rulesText}
             td.addEventListener('drop', e => {
                 e.preventDefault(); td.classList.remove('drag-over');
                 const studentName = e.dataTransfer.getData('text/plain');
+                if (!studentName) return;
                 const row = parseInt(td.dataset.row, 10);
                 const col = parseInt(td.dataset.col, 10);
                 if (Object.values(fixedSeats).some(pos => pos.row === row && pos.col === col)) { showToast('该座位已被占用！', 'error'); return; }
@@ -983,6 +1030,102 @@ ${rulesText}
                     populateUnseatedList();
                 });
             }
+        });
+
+        // 列拖拽功能
+        let draggedCol = null;
+        previewDiv.querySelectorAll('.col-header').forEach(th => {
+            th.draggable = true;
+            th.style.cursor = 'grab';
+            th.addEventListener('dragstart', e => {
+                draggedCol = parseInt(th.dataset.col, 10);
+                e.dataTransfer.setData('type', 'col');
+                e.dataTransfer.setData('col', draggedCol);
+                th.classList.add('dragging');
+            });
+            th.addEventListener('dragend', () => {
+                th.classList.remove('dragging');
+                draggedCol = null;
+            });
+            th.addEventListener('dragover', e => {
+                e.preventDefault();
+                if (draggedCol !== null && parseInt(th.dataset.col, 10) !== draggedCol) {
+                    th.classList.add('drag-over');
+                }
+            });
+            th.addEventListener('dragleave', () => {
+                th.classList.remove('drag-over');
+            });
+            th.addEventListener('drop', e => {
+                e.preventDefault();
+                th.classList.remove('drag-over');
+                const targetCol = parseInt(th.dataset.col, 10);
+                if (draggedCol !== null && targetCol !== draggedCol) {
+                    const newFixedSeats = {};
+                    for (const [name, pos] of Object.entries(fixedSeats)) {
+                        if (pos.col === draggedCol) {
+                            newFixedSeats[name] = { row: pos.row, col: targetCol };
+                        } else if (pos.col === targetCol) {
+                            newFixedSeats[name] = { row: pos.row, col: draggedCol };
+                        } else {
+                            newFixedSeats[name] = { row: pos.row, col: pos.col };
+                        }
+                    }
+                    fixedSeats = newFixedSeats;
+                    renderSettingsPreview();
+                    populateUnseatedList();
+                    showToast(`已将第${draggedCol + 1}列与第${targetCol + 1}列互换`);
+                }
+                draggedCol = null;
+            });
+        });
+
+        // 行拖拽功能
+        let draggedRow = null;
+        previewDiv.querySelectorAll('.row-header').forEach(th => {
+            th.draggable = true;
+            th.style.cursor = 'grab';
+            th.addEventListener('dragstart', e => {
+                draggedRow = parseInt(th.dataset.row, 10);
+                e.dataTransfer.setData('type', 'row');
+                e.dataTransfer.setData('row', draggedRow);
+                th.classList.add('dragging');
+            });
+            th.addEventListener('dragend', () => {
+                th.classList.remove('dragging');
+                draggedRow = null;
+            });
+            th.addEventListener('dragover', e => {
+                e.preventDefault();
+                if (draggedRow !== null && parseInt(th.dataset.row, 10) !== draggedRow) {
+                    th.classList.add('drag-over');
+                }
+            });
+            th.addEventListener('dragleave', () => {
+                th.classList.remove('drag-over');
+            });
+            th.addEventListener('drop', e => {
+                e.preventDefault();
+                th.classList.remove('drag-over');
+                const targetRow = parseInt(th.dataset.row, 10);
+                if (draggedRow !== null && targetRow !== draggedRow) {
+                    const newFixedSeats = {};
+                    for (const [name, pos] of Object.entries(fixedSeats)) {
+                        if (pos.row === draggedRow) {
+                            newFixedSeats[name] = { row: targetRow, col: pos.col };
+                        } else if (pos.row === targetRow) {
+                            newFixedSeats[name] = { row: draggedRow, col: pos.col };
+                        } else {
+                            newFixedSeats[name] = { row: pos.row, col: pos.col };
+                        }
+                    }
+                    fixedSeats = newFixedSeats;
+                    renderSettingsPreview();
+                    populateUnseatedList();
+                    showToast(`已将第${draggedRow + 1}排与第${targetRow + 1}排互换`);
+                }
+                draggedRow = null;
+            });
         });
     }
 
@@ -1455,7 +1598,19 @@ ${rulesText}
             } else {
                 statusDiv.textContent = "✅ 生成成功！开始渲染...";
                 showToast('座位表生成成功！');
+                fixedSeats = {};
+                for (let r = 0; r < finalRows.length; r++) {
+                    for (let c = 0; c < finalRows[r].length; c++) {
+                        if (finalRows[r][c]) {
+                            fixedSeats[finalRows[r][c]] = { row: r, col: c };
+                        }
+                    }
+                }
+                maxRows = finalRows.length;
+                maxCols = finalRows[0].length;
                 await renderSeats(finalRows);
+                renderSettingsPreview();
+                populateUnseatedList();
                 statusDiv.textContent = "✅ 渲染完成！";
                 await delay(4000); bgm.pause();
             }
@@ -1572,7 +1727,7 @@ ${rulesText}
         
         generateBtn.addEventListener("click", () => { updateGroupRowSelects(); generateSeating(); });
         
-        groupCountInput.addEventListener('input', () => { if (allStudents.length > 0) { loadFromLocalStorage(); } saveSettings(); });
+        groupCountInput.addEventListener('input', () => { if (allStudents.length > 0) { recalculateStudentGroups(); } saveSettings(); });
         settingsBtn.addEventListener("click", (e) => { const isOpen = settingsPanel.style.display === "block"; settingsPanel.style.display = isOpen ? "none" : "block"; e.target.textContent = isOpen ? "⚙ 设置" : "✔ 完成设置"; if (!isOpen) drawPanel.style.display = 'none'; });
         drawBtn.addEventListener("click", () => { const isOpen = drawPanel.style.display === "block"; drawPanel.style.display = isOpen ? "none" : "block"; if (!isOpen) { settingsPanel.style.display = 'none'; settingsBtn.textContent = "⚙ 设置"; } });
         $('performDrawBtn').addEventListener('click', performDraw);
@@ -1596,6 +1751,25 @@ ${rulesText}
         loadSavedSeatsBtn.addEventListener('click', loadSavedSeats);
         renameSavedSeatsBtn.addEventListener('click', renameSavedSeats);
         deleteSavedSeatsBtn.addEventListener('click', deleteSavedSeats);
+        $('swapRowsColsBtn').addEventListener('click', () => {
+            const rows = parseInt($('rowCount').value, 10);
+            const cols = parseInt($('colCount').value, 10);
+            const newRows = cols;
+            const newCols = rows;
+            const newFixedSeats = {};
+            for (const [name, pos] of Object.entries(fixedSeats)) {
+                if (pos.col < newRows && pos.row < newCols) {
+                    newFixedSeats[name] = { row: pos.col, col: pos.row };
+                }
+            }
+            fixedSeats = newFixedSeats;
+            $('rowCount').value = newRows;
+            $('colCount').value = newCols;
+            renderSettingsPreview();
+            populateUnseatedList();
+            saveSettings();
+            showToast(`已将 ${rows}行${cols}列 互换为 ${newRows}行${newCols}列`);
+        });
         populateSavedSeatsSelect();
 
         // 学生标签管理功能事件绑定

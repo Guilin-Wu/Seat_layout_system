@@ -501,6 +501,13 @@ body.light-theme .winner {
     border: 2px dashed var(--primary-accent);
     background-color: rgba(0, 245, 212, 0.1);
 }
+#settingsPreview th.drag-over {
+    border: 2px dashed var(--primary-accent);
+    background-color: rgba(0, 245, 212, 0.2);
+}
+#settingsPreview th.dragging {
+    opacity: 0.5;
+}
 #settingsPreview .fixed-preview-seat {
     cursor: pointer; /* 添加手型光标，提示可以操作 */
 }
